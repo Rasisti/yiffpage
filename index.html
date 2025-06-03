@@ -1,77 +1,121 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>YiffPage.net</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-sA+e2YvPbZ9XqG8zFY7KAGC4m0HjI1GaXY7pGeSuNSY="
-    crossorigin=""
-  />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YiffPage.net - The Furry Map</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
   <style>
     body {
-      margin: 0;
       background-color: black;
-      font-family: Verdana, sans-serif;
-      color: mintcream;
+      color: #B0E0E6;
+      font-family: Verdana, Tahoma, sans-serif;
+      margin: 0;
+      padding: 0;
     }
+
     header {
-      background-color: #b0e0e6; /* powder blue */
+      background-color: #98FF98;
       color: black;
+      padding: 10px 20px;
       text-align: center;
-      padding: 10px;
-      font-size: 1.5em;
-      box-shadow: 0 2px 5px #00ffa0;
-    }
-    #map {
-      height: 90vh;
-      width: 100%;
-    }
-    footer {
-      background-color: #b0e0e6;
-      color: black;
-      text-align: center;
-      padding: 5px;
-      font-size: 0.9em;
-    }
-    .logo {
+      font-size: 28px;
       font-weight: bold;
-      font-size: 2em;
-      color: mintcream;
+      border-bottom: 4px double #B0E0E6;
+    }
+
+    nav {
+      background-color: #222;
+      padding: 10px;
+      text-align: center;
+    }
+
+    nav a {
+      color: #B0E0E6;
+      margin: 0 15px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      color: #98FF98;
+      text-decoration: underline;
+    }
+
+    main {
+      padding: 20px;
+      text-align: center;
+    }
+
+    #map {
+      width: 90%;
+      height: 500px;
+      max-width: 1000px;
+      border: 4px solid #98FF98;
+      margin: 0 auto;
+    }
+
+    footer {
+      background-color: #222;
+      color: #98FF98;
+      text-align: center;
+      padding: 15px;
+      font-size: 12px;
+      border-top: 2px dashed #B0E0E6;
     }
   </style>
 </head>
 <body>
   <header>
-    <div class="logo">YiffPage.net</div>
-    <div>Explore the Furry World Map - Old Web Style</div>
+    YiffPage.net
+    <div style="font-size:14px; font-weight:normal;">Find furries near you – retro map edition!</div>
   </header>
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">Map</a>
+    <a href="#">Add Yourself</a>
+    <a href="#">About</a>
+  </nav>
+  <main>
+    <h2>Welcome to YiffPage.net</h2>
+    <p>This is a retro-inspired furry locator map! Use the map below to see who’s near you!</p>
 
-  <div id="map"></div>
-
+    <div id="map"></div>
+  </main>
   <footer>
-    &copy; 2025 YiffPage.net - A nostalgic furry mapping experience
+    © 2025 YiffPage.net — A parody project inspired by FurryMap. Not affiliated with any other site.
   </footer>
 
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-o9N1j7kGZ7nLFbG2kYkaYb3xJdDkAYoFJbBs0LZ4n3E="
-    crossorigin=""
-  ></script>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([20, 0], 2);
+    // Initialize the map
+    const map = L.map('map').setView([20, 0], 2); // World view
 
+    // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+      maxZoom: 18,
+      attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Example marker
-    L.marker([37.7749, -122.4194])
-      .addTo(map)
-      .bindPopup('<b>San Francisco Fur</b><br>Online since 2006.');
+    // Example user data (name, lat, lon)
+    const users = [
+      { name: "FoxieBoy", lat: 37.7749, lon: -122.4194 },
+      { name: "WolfGal92", lat: 51.5074, lon: -0.1278 },
+      { name: "DragonPaws", lat: 48.8566, lon: 2.3522 },
+      { name: "SkunkButt", lat: -33.8688, lon: 151.2093 },
+      { name: "BarkBark", lat: 35.6895, lon: 139.6917 }
+    ];
+
+    // Place all user markers
+    users.forEach(user => {
+      L.marker([user.lat, user.lon])
+        .addTo(map)
+        .bindPopup(`<b>${user.name}</b>`);
+    });
   </script>
 </body>
 </html>
