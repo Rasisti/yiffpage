@@ -1,1 +1,77 @@
-SKIBID TOILET RIZZ
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YiffPage.net</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-sA+e2YvPbZ9XqG8zFY7KAGC4m0HjI1GaXY7pGeSuNSY="
+    crossorigin=""
+  />
+  <style>
+    body {
+      margin: 0;
+      background-color: black;
+      font-family: Verdana, sans-serif;
+      color: mintcream;
+    }
+    header {
+      background-color: #b0e0e6; /* powder blue */
+      color: black;
+      text-align: center;
+      padding: 10px;
+      font-size: 1.5em;
+      box-shadow: 0 2px 5px #00ffa0;
+    }
+    #map {
+      height: 90vh;
+      width: 100%;
+    }
+    footer {
+      background-color: #b0e0e6;
+      color: black;
+      text-align: center;
+      padding: 5px;
+      font-size: 0.9em;
+    }
+    .logo {
+      font-weight: bold;
+      font-size: 2em;
+      color: mintcream;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">YiffPage.net</div>
+    <div>Explore the Furry World Map - Old Web Style</div>
+  </header>
+
+  <div id="map"></div>
+
+  <footer>
+    &copy; 2025 YiffPage.net - A nostalgic furry mapping experience
+  </footer>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o9N1j7kGZ7nLFbG2kYkaYb3xJdDkAYoFJbBs0LZ4n3E="
+    crossorigin=""
+  ></script>
+  <script>
+    const map = L.map('map').setView([20, 0], 2);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    // Example marker
+    L.marker([37.7749, -122.4194])
+      .addTo(map)
+      .bindPopup('<b>San Francisco Fur</b><br>Online since 2006.');
+  </script>
+</body>
+</html>
