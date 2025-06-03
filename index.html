@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>YiffPage.net - The Furry Map</title>
+  <title>Nearest Mental Hospital Finder</title>
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
@@ -12,110 +12,147 @@
     body {
       background-color: black;
       color: #B0E0E6;
-      font-family: Verdana, Tahoma, sans-serif;
+      font-family: Verdana, sans-serif;
+      text-align: center;
       margin: 0;
       padding: 0;
     }
 
     header {
       background-color: #98FF98;
-      color: black;
-      padding: 10px 20px;
-      text-align: center;
-      font-size: 28px;
-      font-weight: bold;
-      border-bottom: 4px double #B0E0E6;
-    }
-
-    nav {
-      background-color: #222;
       padding: 10px;
-      text-align: center;
-    }
-
-    nav a {
-      color: #B0E0E6;
-      margin: 0 15px;
-      text-decoration: none;
+      font-size: 24px;
       font-weight: bold;
-    }
-
-    nav a:hover {
-      color: #98FF98;
-      text-decoration: underline;
-    }
-
-    main {
-      padding: 20px;
-      text-align: center;
+      color: black;
     }
 
     #map {
       width: 90%;
-      height: 500px;
-      max-width: 1000px;
+      height: 300px;
+      margin: 20px auto;
       border: 4px solid #98FF98;
-      margin: 0 auto;
+    }
+
+    #compass {
+      width: 200px;
+      height: 200px;
+      margin: 20px auto;
+      background: radial-gradient(#B0E0E6, #222);
+      border: 4px solid #98FF98;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    #arrow {
+      width: 4px;
+      height: 90px;
+      background: #98FF98;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform-origin: bottom center;
+    }
+
+    #info {
+      font-size: 18px;
+      margin-top: 20px;
     }
 
     footer {
-      background-color: #222;
-      color: #98FF98;
-      text-align: center;
-      padding: 15px;
+      margin-top: 40px;
+      padding: 10px;
       font-size: 12px;
-      border-top: 2px dashed #B0E0E6;
+      color: #98FF98;
     }
   </style>
 </head>
 <body>
-  <header>
-    YiffPage.net
-    <div style="font-size:14px; font-weight:normal;">Find furries near you – retro map edition!</div>
-  </header>
-  <nav>
-    <a href="#">Home</a>
-    <a href="#">Map</a>
-    <a href="#">Add Yourself</a>
-    <a href="#">About</a>
-  </nav>
-  <main>
-    <h2>Welcome to YiffPage.net</h2>
-    <p>This is a retro-inspired furry locator map! Use the map below to see who’s near you!</p>
+  <header>Nearest Mental Hospital Compass</header>
 
-    <div id="map"></div>
-  </main>
-  <footer>
-    © 2025 YiffPage.net — A parody project inspired by FurryMap. Not affiliated with any other site.
-  </footer>
+  <div id="map"></div>
+  <div id="compass">
+    <div id="arrow"></div>
+  </div>
+
+  <div id="info">Getting your location...</div>
+
+  <footer>© 2025 yiffpage.net - now medically helpful.</footer>
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script>
-    // Initialize the map
-    const map = L.map('map').setView([20, 0], 2); // World view
 
-    // Add OpenStreetMap tiles
+  <script>
+    let userLat, userLon, hospitalLat, hospitalLon;
+
+    const map = L.map('map').setView([0, 0], 2);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 18,
-      attribution: '&copy; OpenStreetMap contributors'
+      attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Example user data (name, lat, lon)
-    const users = [
-      { name: "FoxieBoy", lat: 37.7749, lon: -122.4194 },
-      { name: "WolfGal92", lat: 51.5074, lon: -0.1278 },
-      { name: "DragonPaws", lat: 48.8566, lon: 2.3522 },
-      { name: "SkunkButt", lat: -33.8688, lon: 151.2093 },
-      { name: "BarkBark", lat: 35.6895, lon: 139.6917 }
-    ];
+    // Get user location
+    navigator.geolocation.getCurrentPosition(async pos => {
+      userLat = pos.coords.latitude;
+      userLon = pos.coords.longitude;
+      map.setView([userLat, userLon], 13);
+      L.marker([userLat, userLon]).addTo(map).bindPopup("You are here").openPopup();
 
-    // Place all user markers
-    users.forEach(user => {
-      L.marker([user.lat, user.lon])
-        .addTo(map)
-        .bindPopup(`<b>${user.name}</b>`);
+      // Search for nearest hospital
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=mental hospital&limit=1&lat=${userLat}&lon=${userLon}`;
+      const res = await fetch(url, { headers: { 'User-Agent': 'yiffpage.net demo' } });
+      const data = await res.json();
+
+      if (data.length > 0) {
+        hospitalLat = parseFloat(data[0].lat);
+        hospitalLon = parseFloat(data[0].lon);
+
+        L.marker([hospitalLat, hospitalLon]).addTo(map).bindPopup("Nearest Mental Hospital");
+
+        const distance = haversine(userLat, userLon, hospitalLat, hospitalLon);
+        document.getElementById('info').innerText = `Nearest hospital is ${distance.toFixed(2)} km away`;
+
+        updateCompass();
+      } else {
+        document.getElementById('info').innerText = "No mental hospitals found nearby.";
+      }
+    }, () => {
+      document.getElementById('info').innerText = "Location access denied.";
     });
+
+    // Haversine formula to calculate distance in km
+    function haversine(lat1, lon1, lat2, lon2) {
+      const R = 6371; // Earth radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2)**2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    // Update compass rotation based on target bearing
+    function updateCompass() {
+      if (!window.DeviceOrientationEvent || !hospitalLat || !hospitalLon) return;
+
+      window.addEventListener("deviceorientationabsolute", event => {
+        if (!event.alpha) return;
+
+        const bearing = getBearing(userLat, userLon, hospitalLat, hospitalLon);
+        const heading = 360 - event.alpha; // invert for compass style
+        const relativeAngle = bearing - heading;
+
+        document.getElementById('arrow').style.transform = `rotate(${relativeAngle}deg)`;
+      }, true);
+    }
+
+    // Calculate bearing from point A to B
+    function getBearing(lat1, lon1, lat2, lon2) {
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+      const y = Math.sin(Δλ) * Math.cos(φ2);
+      const x = Math.cos(φ1)*Math.sin(φ2) - Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
+      const θ = Math.atan2(y, x);
+      return (θ * 180 / Math.PI + 360) % 360;
+    }
   </script>
 </body>
 </html>
