@@ -3,10 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Nearest Mental Hospital Finder</title>
-
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <title>Nearest Alko Finder</title>
 
   <style>
     body {
@@ -16,27 +13,24 @@
       text-align: center;
       margin: 0;
       padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     header {
       background-color: #98FF98;
       padding: 10px;
+      width: 100%;
       font-size: 24px;
       font-weight: bold;
       color: black;
     }
 
-    #map {
-      width: 90%;
-      height: 300px;
-      margin: 20px auto;
-      border: 4px solid #98FF98;
-    }
-
     #compass {
       width: 200px;
       height: 200px;
-      margin: 20px auto;
+      margin-top: 50px;
       background: radial-gradient(#B0E0E6, #222);
       border: 4px solid #98FF98;
       border-radius: 50%;
@@ -54,12 +48,12 @@
     }
 
     #info {
-      font-size: 18px;
-      margin-top: 20px;
+      font-size: 20px;
+      margin-top: 30px;
     }
 
     footer {
-      margin-top: 40px;
+      margin-top: auto;
       padding: 10px;
       font-size: 12px;
       color: #98FF98;
@@ -67,60 +61,44 @@
   </style>
 </head>
 <body>
-  <header>Nearest Mental Hospital Compass</header>
+  <header>Nearest Alko Compass</header>
 
-  <div id="map"></div>
   <div id="compass">
     <div id="arrow"></div>
   </div>
 
-  <div id="info">Getting your location...</div>
+  <div id="info">Locating your nearest Alko...</div>
 
-  <footer>© 2025 yiffpage.net - now medically helpful.</footer>
-
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <footer>© 2025 yiffpage.net – your compass to refreshments 🍻</footer>
 
   <script>
-    let userLat, userLon, hospitalLat, hospitalLon;
+    let userLat, userLon, alkoLat, alkoLon;
 
-    const map = L.map('map').setView([0, 0], 2);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-
-    // Get user location
     navigator.geolocation.getCurrentPosition(async pos => {
       userLat = pos.coords.latitude;
       userLon = pos.coords.longitude;
-      map.setView([userLat, userLon], 13);
-      L.marker([userLat, userLon]).addTo(map).bindPopup("You are here").openPopup();
 
-      // Search for nearest hospital
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=mental hospital&limit=1&lat=${userLat}&lon=${userLon}`;
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=Alko&countrycodes=FI&limit=1&lat=${userLat}&lon=${userLon}`;
       const res = await fetch(url, { headers: { 'User-Agent': 'yiffpage.net demo' } });
       const data = await res.json();
 
       if (data.length > 0) {
-        hospitalLat = parseFloat(data[0].lat);
-        hospitalLon = parseFloat(data[0].lon);
+        alkoLat = parseFloat(data[0].lat);
+        alkoLon = parseFloat(data[0].lon);
 
-        L.marker([hospitalLat, hospitalLon]).addTo(map).bindPopup("Nearest Mental Hospital");
-
-        const distance = haversine(userLat, userLon, hospitalLat, hospitalLon);
-        document.getElementById('info').innerText = `Nearest hospital is ${distance.toFixed(2)} km away`;
+        const distance = haversine(userLat, userLon, alkoLat, alkoLon);
+        document.getElementById('info').innerText = `Nearest Alko is ${distance.toFixed(2)} km away`;
 
         updateCompass();
       } else {
-        document.getElementById('info').innerText = "No mental hospitals found nearby.";
+        document.getElementById('info').innerText = "No Alko found nearby.";
       }
     }, () => {
       document.getElementById('info').innerText = "Location access denied.";
     });
 
-    // Haversine formula to calculate distance in km
     function haversine(lat1, lon1, lat2, lon2) {
-      const R = 6371; // Earth radius in km
+      const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLon = (lon2 - lon1) * Math.PI / 180;
       const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2)**2;
@@ -128,22 +106,20 @@
       return R * c;
     }
 
-    // Update compass rotation based on target bearing
     function updateCompass() {
-      if (!window.DeviceOrientationEvent || !hospitalLat || !hospitalLon) return;
+      if (!window.DeviceOrientationEvent || !alkoLat || !alkoLon) return;
 
       window.addEventListener("deviceorientationabsolute", event => {
         if (!event.alpha) return;
 
-        const bearing = getBearing(userLat, userLon, hospitalLat, hospitalLon);
-        const heading = 360 - event.alpha; // invert for compass style
+        const bearing = getBearing(userLat, userLon, alkoLat, alkoLon);
+        const heading = 360 - event.alpha;
         const relativeAngle = bearing - heading;
 
         document.getElementById('arrow').style.transform = `rotate(${relativeAngle}deg)`;
       }, true);
     }
 
-    // Calculate bearing from point A to B
     function getBearing(lat1, lon1, lat2, lon2) {
       const φ1 = lat1 * Math.PI / 180;
       const φ2 = lat2 * Math.PI / 180;
