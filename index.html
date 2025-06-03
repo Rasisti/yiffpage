@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Nearest Alko Finder</title>
-
+  <title>Nearest Alko Compass</title>
   <style>
     body {
       background-color: black;
@@ -50,6 +49,7 @@
     #info {
       font-size: 20px;
       margin-top: 30px;
+      color: #B0E0E6;
     }
 
     footer {
@@ -67,9 +67,9 @@
     <div id="arrow"></div>
   </div>
 
-  <div id="info">Locating your nearest Alko...</div>
+  <div id="info">Locating nearest Alko...</div>
 
-  <footer>© 2025 yiffpage.net – your compass to refreshments 🍻</footer>
+  <footer>© 2025 yiffpage.net — Your refreshment navigator 🍺</footer>
 
   <script>
     let userLat, userLon, alkoLat, alkoLon;
@@ -78,18 +78,37 @@
       userLat = pos.coords.latitude;
       userLon = pos.coords.longitude;
 
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=Alko&countrycodes=FI&limit=1&lat=${userLat}&lon=${userLon}`;
-      const res = await fetch(url, { headers: { 'User-Agent': 'yiffpage.net demo' } });
+      const query = `
+        [out:json];
+        node["shop"="alcohol"]["name"="Alko"](around:5000,${userLat},${userLon});
+        out;
+      `;
+
+      const res = await fetch("https://overpass-api.de/api/interpreter", {
+        method: "POST",
+        body: query
+      });
+
       const data = await res.json();
 
-      if (data.length > 0) {
-        alkoLat = parseFloat(data[0].lat);
-        alkoLon = parseFloat(data[0].lon);
+      if (data.elements.length > 0) {
+        let nearest = null;
+        let minDistance = Infinity;
 
-        const distance = haversine(userLat, userLon, alkoLat, alkoLon);
-        document.getElementById('info').innerText = `Nearest Alko is ${distance.toFixed(2)} km away`;
+        data.elements.forEach(e => {
+          const dist = haversine(userLat, userLon, e.lat, e.lon);
+          if (dist < minDistance) {
+            minDistance = dist;
+            nearest = e;
+          }
+        });
 
-        updateCompass();
+        alkoLat = nearest.lat;
+        alkoLon = nearest.lon;
+
+        document.getElementById('info').innerText = `Nearest Alko is ${minDistance.toFixed(2)} km away`;
+
+        setupCompass();
       } else {
         document.getElementById('info').innerText = "No Alko found nearby.";
       }
@@ -101,23 +120,12 @@
       const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2)**2;
+      const a = Math.sin(dLat/2)**2 +
+                Math.cos(lat1 * Math.PI / 180) *
+                Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2)**2;
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
       return R * c;
-    }
-
-    function updateCompass() {
-      if (!window.DeviceOrientationEvent || !alkoLat || !alkoLon) return;
-
-      window.addEventListener("deviceorientationabsolute", event => {
-        if (!event.alpha) return;
-
-        const bearing = getBearing(userLat, userLon, alkoLat, alkoLon);
-        const heading = 360 - event.alpha;
-        const relativeAngle = bearing - heading;
-
-        document.getElementById('arrow').style.transform = `rotate(${relativeAngle}deg)`;
-      }, true);
     }
 
     function getBearing(lat1, lon1, lat2, lon2) {
@@ -125,9 +133,24 @@
       const φ2 = lat2 * Math.PI / 180;
       const Δλ = (lon2 - lon1) * Math.PI / 180;
       const y = Math.sin(Δλ) * Math.cos(φ2);
-      const x = Math.cos(φ1)*Math.sin(φ2) - Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
+      const x = Math.cos(φ1) * Math.sin(φ2) -
+                Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
       const θ = Math.atan2(y, x);
       return (θ * 180 / Math.PI + 360) % 360;
+    }
+
+    function setupCompass() {
+      if (!window.DeviceOrientationEvent) return;
+
+      window.addEventListener("deviceorientationabsolute", event => {
+        if (!alkoLat || !alkoLon || event.alpha == null) return;
+
+        const bearing = getBearing(userLat, userLon, alkoLat, alkoLon);
+        const heading = 360 - event.alpha;
+        const angle = (bearing - heading + 360) % 360;
+
+        document.getElementById('arrow').style.transform = `rotate(${angle}deg)`;
+      }, true);
     }
   </script>
 </body>
